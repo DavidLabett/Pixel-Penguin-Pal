@@ -4,9 +4,10 @@ import { PomodoroTimer } from './pomodoro.js';
 // ---------------------------------------------------------------------------
 // DOM refs
 // ---------------------------------------------------------------------------
-const canvas       = document.getElementById('sprite-canvas');
-const timerLabel   = document.getElementById('timer-label');
-const zzzOverlay   = document.getElementById('zzz-overlay');
+const canvas        = document.getElementById('sprite-canvas');
+const spriteWrapper = document.getElementById('sprite-wrapper');
+const timerLabel    = document.getElementById('timer-label');
+const zzzOverlay    = document.getElementById('zzz-overlay');
 const noteOverlay  = document.getElementById('note-overlay');
 const noteTextEl   = document.getElementById('note-text');
 const noteDismiss  = document.getElementById('note-dismiss');
@@ -17,6 +18,10 @@ const WINDOW_H_DEFAULT = 150;
 const WINDOW_H_NOTE    = 260;
 
 const animator = new SpriteAnimator(canvas, SPRITES_PATH);
+
+function applyFlipSetting(settings) {
+  spriteWrapper.classList.toggle('flipped', settings?.flipHorizontal === true);
+}
 
 // ---------------------------------------------------------------------------
 // Animation states
@@ -359,6 +364,10 @@ document.addEventListener('contextmenu', (e) => {
   await animator.preload();
   const settings = await window.companion.getPomodoroSettings();
   pomodoro = new PomodoroTimer(onPomodoroState, settings);
-  window.companion.onPomodoroSettingsChanged((s) => pomodoro?.applySettings(s));
+  applyFlipSetting(settings);
+  window.companion.onPomodoroSettingsChanged((s) => {
+    pomodoro?.applySettings(s);
+    applyFlipSetting(s);
+  });
   applyAnimState(STATE.IDLE);
 })();

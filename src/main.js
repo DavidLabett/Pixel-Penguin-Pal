@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS = {
   shortBreakMinutes: 5,
   longBreakMinutes: 15,
   sleepMinutes: 5,
+  flipHorizontal: false,
 };
 
 function pomodoroSettingsPath() {
@@ -29,6 +30,7 @@ function loadPomodoroSettings() {
       shortBreakMinutes: Number(data.shortBreakMinutes) || DEFAULT_SETTINGS.shortBreakMinutes,
       longBreakMinutes:  Number(data.longBreakMinutes)  || DEFAULT_SETTINGS.longBreakMinutes,
       sleepMinutes:      Number(data.sleepMinutes)      || DEFAULT_SETTINGS.sleepMinutes,
+      flipHorizontal:    data.flipHorizontal === true,
     };
   } catch { return { ...DEFAULT_SETTINGS }; }
 }
@@ -40,6 +42,7 @@ function normalizeSettingsForSave(s) {
     shortBreakMinutes: clamp(s.shortBreakMinutes, 1, 120),
     longBreakMinutes:  clamp(s.longBreakMinutes, 1, 120),
     sleepMinutes:      clamp(s.sleepMinutes, 1, 60),
+    flipHorizontal:    Boolean(s.flipHorizontal),
   };
 }
 
@@ -219,7 +222,7 @@ function openSettingsWindow() {
     parent: win,
     modal: true,
     width: 340,
-    height: 440,
+    height: 500,
     resizable: false,
     autoHideMenuBar: true,
     title: 'Settings',
