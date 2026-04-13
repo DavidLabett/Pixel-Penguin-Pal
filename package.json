@@ -1,0 +1,17 @@
+{
+  "name": "companion-widget",
+  "version": "1.0.0",
+  "description": "Desktop penguin companion with Pomodoro timer",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w uiohook-napi"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.4"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-rebuild": "^3.2.9"
+  }
+}

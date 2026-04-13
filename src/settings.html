@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro settings</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px 18px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      color: #e8e8e8;
+      background: #1e1e1e;
+    }
+    h1 {
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+    }
+    h2 {
+      margin: 16px 0 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      color: #b0b0b0;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #3c3c3c;
+      border-radius: 6px;
+      background: #2d2d2d;
+      color: #fff;
+      font-size: 14px;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #5a9fd4;
+    }
+    .hint {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #333;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #3c3c3c;
+      color: #e8e8e8;
+    }
+    button.primary {
+      background: #0e639c;
+      color: #fff;
+    }
+    button:hover { filter: brightness(1.08); }
+    .err {
+      color: #f48771;
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Settings</h1>
+  <h2>Pomodoro durations</h2>
+  <div class="field">
+    <label for="work">Focus (minutes)</label>
+    <input id="work" type="number" min="1" max="180" step="1" />
+    <div class="hint">Length of each work session</div>
+  </div>
+  <div class="field">
+    <label for="shortBreak">Short break (minutes)</label>
+    <input id="shortBreak" type="number" min="1" max="120" step="1" />
+    <div class="hint">After most sessions</div>
+  </div>
+  <div class="field">
+    <label for="longBreak">Long break (minutes)</label>
+    <input id="longBreak" type="number" min="1" max="120" step="1" />
+    <div class="hint">Every 4th break</div>
+  </div>
+  <h2>Idle &amp; sleep</h2>
+  <div class="field">
+    <label for="sleepMinutes">Sleep after (minutes)</label>
+    <input id="sleepMinutes" type="number" min="1" max="60" step="1" />
+    <div class="hint">No keypresses for this long → penguin falls asleep</div>
+  </div>
+  <div id="err" class="err"></div>
+  <div class="actions">
+    <button type="button" class="secondary" id="cancel">Cancel</button>
+    <button type="button" class="primary" id="save">Save</button>
+  </div>
+  <script type="module" src="settings-renderer.js"></script>
+</body>
+</html>

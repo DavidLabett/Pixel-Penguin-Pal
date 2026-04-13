@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Companion</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 128px;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      user-select: none;
+      cursor: default;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* --- Note alert overlay --- */
+    #note-overlay {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      width: 128px;
+      max-height: 110px;
+      background: rgba(15, 15, 25, 0.93);
+      border-radius: 0 0 6px 6px;
+      padding: 7px 8px 6px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    #note-overlay.active { display: flex; }
+
+    #note-text {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #e8e8e8;
+      word-break: break-word;
+    }
+
+    #note-dismiss {
+      align-self: flex-end;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #0e639c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #note-dismiss:hover { background: #1177bb; }
+
+    /* --- Timer bar --- */
+    #timer-bar {
+      width: 128px;
+      flex: 0 0 auto;
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 2px 2px;
+    }
+
+    #timer-label {
+      font-family: 'Segoe UI', monospace, sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 6px;
+      padding: 3px 10px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    #timer-label.visible { opacity: 1; }
+
+    /* --- Sprite wrapper + overlays --- */
+    #sprite-wrapper {
+      position: relative;
+      width: 128px;
+      height: 128px;
+      flex: 0 0 128px;
+    }
+
+    #sprite-canvas {
+      display: block;
+      width: 128px;
+      height: 128px;
+      image-rendering: pixelated;
+    }
+
+    /* --- zZzZzZ sleep overlay --- */
+    #zzz-overlay {
+      position: absolute;
+      bottom: 28px;
+      right: 6px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      pointer-events: none;
+      display: none; /* animation is only attached when .visible, so keyframes can't bleed through */
+    }
+    #zzz-overlay.visible {
+      display: block;
+      animation: zzz 2.5s ease-in-out infinite;
+    }
+
+    @keyframes zzz {
+      0%,  100% { transform: translateY(0);    opacity: 0.35; }
+      50%        { transform: translateY(-7px); opacity: 1;    }
+    }
+  </style>
+</head>
+<body>
+  <div id="note-overlay">
+    <p id="note-text"></p>
+    <button id="note-dismiss">✓ Dismiss</button>
+  </div>
+  <div id="timer-bar">
+    <span id="timer-label">25:00</span>
+  </div>
+  <div id="sprite-wrapper">
+    <canvas id="sprite-canvas"></canvas>
+    <div id="zzz-overlay" aria-hidden="true">zZzZzZ</div>
+  </div>
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>
