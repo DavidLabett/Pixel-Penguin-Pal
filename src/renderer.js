@@ -325,6 +325,7 @@ function startEasterEgg() {
 // Note alert queue
 // ---------------------------------------------------------------------------
 let noteAlertQueue = [];
+let pomodoroWasPausedForNote = false;
 
 function showNextNote() {
   if (noteAlertQueue.length === 0) {
@@ -332,6 +333,11 @@ function showNextNote() {
     noteOverlay.classList.remove('active');
     noteAlertActive = false;
     if (currentSoundMode === 'note') stopAlertSound();
+    // Resume pomodoro if we paused it for this note
+    if (pomodoroWasPausedForNote && pomodoro) {
+      pomodoroWasPausedForNote = false;
+      pomodoro.resume();
+    }
     animState = null;
     updateAnimState();
     setTimeout(() => window.companion.resizeWindow(WINDOW_W, WINDOW_H_DEFAULT), 80);
@@ -340,6 +346,13 @@ function showNextNote() {
 
   const note = noteAlertQueue.shift();
   noteTextEl.textContent = note.text;
+
+  // Pause the pomodoro while the note is on screen (only for the first note)
+  if (!noteAlertActive && pomodoro &&
+      (pomodoroPhase === 'working' || pomodoroPhase === 'break')) {
+    pomodoro.pause();
+    pomodoroWasPausedForNote = true;
+  }
 
   // Grow the window upward first, then reveal the note panel so the
   // penguin and timer never appear to shift position.
@@ -442,6 +455,7 @@ const DRAG_THRESHOLD = 4;
 
 document.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
+  if (noteAlertActive) return; // ignore drag start during note alert
   dragStart  = { x: e.screenX, y: e.screenY };
   hasDragged = false;
 });
@@ -461,12 +475,13 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseup', (e) => {
   if (e.button !== 0) { dragStart = null; return; }
+  // Capture flag now — by the time the timer fires noteAlertActive may have changed
+  const clickedDuringNote = noteAlertActive;
   if (!hasDragged) {
-    // Delay to allow dblclick to cancel if it follows quickly
     if (singleClickTimer) clearTimeout(singleClickTimer);
     singleClickTimer = setTimeout(() => {
       singleClickTimer = null;
-      if (pomodoro && !noteAlertActive) pomodoro.toggle();
+      if (pomodoro && !clickedDuringNote) pomodoro.toggle();
     }, 280);
   }
   dragStart  = null;

@@ -271,13 +271,26 @@ ipcMain.on('move-window', (e, { dx, dy }) => {
   win.setPosition(x + dx, y + dy);
 });
 
+let savedYBeforeNoteExpand = null;
+
 ipcMain.on('resize-window', (e, { width, height }) => {
   if (!win || win.isDestroyed()) return;
   const [x, y] = win.getPosition();
   const [, oldH] = win.getSize();
-  win.setSize(width, height);
-  // Keep bottom edge fixed: expand/contract upward
-  win.setPosition(x, y - (height - oldH));
+  let newY;
+  if (height > oldH) {
+    // Expanding upward — save the current top so we can restore it exactly later
+    savedYBeforeNoteExpand = y;
+    newY = y - (height - oldH);
+  } else if (savedYBeforeNoteExpand !== null) {
+    // Collapsing — restore the exact pre-note top position
+    newY = savedYBeforeNoteExpand;
+    savedYBeforeNoteExpand = null;
+  } else {
+    newY = y - (height - oldH);
+  }
+  // Use setBounds for an atomic size+position update (avoids two-step flicker)
+  win.setBounds({ x, y: newY, width, height });
 });
 
 let pomodoroState = { phase: 'stopped', label: 'Stopped' };
