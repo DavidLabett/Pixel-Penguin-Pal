@@ -13,6 +13,7 @@ const SPRITE_CONFIG = {
   Hurt:        { frameCount: 4, fps: 8  },
   Flap:        { frameCount: 2, fps: 8  },
   Death:       { frameCount: 1, fps: 4  },
+  Land:        { frameCount: 2, fps: 8  },
   Jump:        { frameCount: 2, fps: 10 },
 };
 

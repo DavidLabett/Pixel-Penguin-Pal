@@ -147,7 +147,7 @@ let lastPomodoroPhaseForSound = 'stopped';
 // ---------------------------------------------------------------------------
 // Idle variants
 // ---------------------------------------------------------------------------
-const IDLE_VARIANTS   = ['Idle', 'Idle', 'Idle', 'Crouch', 'Turn'];
+const IDLE_VARIANTS   = ['Idle', 'Idle', 'Idle', 'Crouch', 'Turn', 'Land'];
 const SHORT_IDLE_MIN  = 1000;
 const SHORT_IDLE_MAX  = 3000;
 const LONG_IDLE_MIN   = 8000;
@@ -271,8 +271,13 @@ function startDeathJumpPhase() {
   animator.play('Death', true);
   deathHoldTimeout = setTimeout(() => {
     deathHoldTimeout = null;
-    animator.play('Jump', false);
-    animator.onCycleComplete = () => { animator.onCycleComplete = null; endDeathJumpSequence(); };
+    // Land once → Jump once → resume
+    animator.play('Land', false);
+    animator.onCycleComplete = () => {
+      animator.onCycleComplete = null;
+      animator.play('Jump', false);
+      animator.onCycleComplete = () => { animator.onCycleComplete = null; endDeathJumpSequence(); };
+    };
   }, DEATH_HOLD_MS);
 }
 
