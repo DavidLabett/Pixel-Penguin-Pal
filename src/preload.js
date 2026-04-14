@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('companion', {
   onNoteAlert:              (cb) => ipcRenderer.on('note-alert',                (_e, n)  => cb(n)),
 
   // Renderer → Main
+  setIgnoreMouseEvents: (ignore) => ipcRenderer.send('set-ignore-mouse-events', ignore),
   moveWindow:        (dx, dy)   => ipcRenderer.send('move-window',       { dx, dy }),
   resizeWindow:      (w, h)     => ipcRenderer.send('resize-window',     { width: w, height: h }),
   sendPomodoroState: (state)    => ipcRenderer.send('pomodoro-state',    state),

@@ -3,6 +3,7 @@ const shortEl       = document.getElementById('shortBreak');
 const longEl        = document.getElementById('longBreak');
 const sleepEl       = document.getElementById('sleepMinutes');
 const flipEl        = document.getElementById('flipHorizontal');
+const soundEl       = document.getElementById('soundEnabled');
 const errEl         = document.getElementById('err');
 
 document.getElementById('cancel').addEventListener('click', () => {
@@ -28,6 +29,7 @@ document.getElementById('save').addEventListener('click', async () => {
     longBreakMinutes,
     sleepMinutes,
     flipHorizontal: flipEl.checked,
+    soundEnabled: soundEl.checked,
   });
 
   if (result?.ok) {
@@ -44,4 +46,5 @@ document.getElementById('save').addEventListener('click', async () => {
   longEl.value  = String(s.longBreakMinutes);
   sleepEl.value = String(s.sleepMinutes ?? 5);
   flipEl.checked = s.flipHorizontal === true;
+  soundEl.checked = s.soundEnabled !== false;
 })();

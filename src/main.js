@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS = {
   longBreakMinutes: 15,
   sleepMinutes: 5,
   flipHorizontal: false,
+  soundEnabled: true,
 };
 
 function pomodoroSettingsPath() {
@@ -31,6 +32,7 @@ function loadPomodoroSettings() {
       longBreakMinutes:  Number(data.longBreakMinutes)  || DEFAULT_SETTINGS.longBreakMinutes,
       sleepMinutes:      Number(data.sleepMinutes)      || DEFAULT_SETTINGS.sleepMinutes,
       flipHorizontal:    data.flipHorizontal === true,
+      soundEnabled:      data.soundEnabled !== false,
     };
   } catch { return { ...DEFAULT_SETTINGS }; }
 }
@@ -43,6 +45,7 @@ function normalizeSettingsForSave(s) {
     longBreakMinutes:  clamp(s.longBreakMinutes, 1, 120),
     sleepMinutes:      clamp(s.sleepMinutes, 1, 60),
     flipHorizontal:    Boolean(s.flipHorizontal),
+    soundEnabled:      s.soundEnabled !== false,
   };
 }
 
@@ -117,7 +120,7 @@ function checkNotes() {
 // ---------------------------------------------------------------------------
 const TYPING_WINDOW_MS = 1000;
 const FAST_TYPING_THRESHOLD = 7;
-const TYPING_IDLE_TIMEOUT_MS = 2000;
+const TYPING_IDLE_TIMEOUT_MS = 900;
 
 let sleepIdleMs = DEFAULT_SETTINGS.sleepMinutes * 60_000; // updated when settings load/save
 
@@ -258,6 +261,10 @@ function openNotesWindow() {
 // ---------------------------------------------------------------------------
 // IPC
 // ---------------------------------------------------------------------------
+ipcMain.on('set-ignore-mouse-events', (e, ignore) => {
+  if (win && !win.isDestroyed()) win.setIgnoreMouseEvents(ignore, { forward: true });
+});
+
 ipcMain.on('move-window', (e, { dx, dy }) => {
   if (!win) return;
   const [x, y] = win.getPosition();

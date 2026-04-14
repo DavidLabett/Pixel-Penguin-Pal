@@ -11,6 +11,7 @@ const SPRITE_CONFIG = {
   Roll:        { frameCount: 4, fps: 12 },
   Spin_Attack: { frameCount: 7, fps: 10 },
   Hurt:        { frameCount: 4, fps: 8  },
+  Flap:        { frameCount: 2, fps: 8  },
   Death:       { frameCount: 1, fps: 4  },
   Jump:        { frameCount: 2, fps: 10 },
 };

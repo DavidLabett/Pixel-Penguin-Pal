@@ -5,135 +5,209 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notes</title>
   <style>
+    :root{
+      --bg: #0f0f10;
+      --panel: rgba(20,20,22,0.86);
+      --panel2: rgba(16,16,18,0.85);
+      --text: #f2f2f2;
+      --muted: #a3a3a3;
+      --faint: #6e6e6e;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.14);
+      --hover: rgba(255,255,255,0.06);
+      --focus: rgba(255,255,255,0.22);
+    }
+
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
       font-size: 13px;
-      color: #e8e8e8;
-      background: #1e1e1e;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg), #0b0b0c);
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
+      color-scheme: dark;
+    }
+
+    /* --- Scrollbars (Chromium/Electron) --- */
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    *::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+    }
+    *::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.14);
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,0); /* keeps thumb from feeling too thick */
+      background-clip: padding-box;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.22);
+      background-clip: padding-box;
     }
 
     header {
-      padding: 12px 16px 10px;
-      font-size: 15px;
-      font-weight: 600;
-      color: #fff;
-      border-bottom: 1px solid #333;
+      padding: 14px 16px 12px;
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+      background: rgba(0,0,0,0.12);
+      backdrop-filter: blur(10px);
     }
 
     /* --- Notes list --- */
     #notes-list {
       flex: 1;
       overflow-y: auto;
-      padding: 8px 12px;
+      padding: 10px 12px 12px;
     }
 
     .note-card {
-      background: #2a2a2a;
-      border-radius: 6px;
-      padding: 8px 10px;
-      margin-bottom: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 10px;
+      margin-bottom: 10px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.40);
     }
 
     .note-card-top {
       display: flex;
       align-items: flex-start;
-      gap: 6px;
+      gap: 10px;
     }
 
     .note-preview {
       flex: 1;
       font-size: 13px;
-      color: #e0e0e0;
-      line-height: 1.4;
+      color: var(--text);
+      line-height: 1.45;
       white-space: pre-wrap;
       word-break: break-word;
     }
 
     .note-actions {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       flex-shrink: 0;
     }
 
     .note-timer-desc {
       font-size: 11px;
-      color: #888;
+      color: var(--faint);
     }
 
     .note-actions button {
-      padding: 2px 8px;
-      font-size: 11px;
-      border-radius: 4px;
-      border: none;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(16,16,18,0.85);
+      color: var(--text);
       cursor: pointer;
+      transition: background .12s ease, border-color .12s ease, transform .04s ease;
     }
 
-    .btn-edit   { background: #3c3c3c; color: #ccc; }
-    .btn-delete { background: #6e2020; color: #fcc; }
-    .btn-edit:hover   { background: #4a4a4a; }
-    .btn-delete:hover { background: #8a2a2a; }
+    .note-actions button:hover { background: var(--hover); border-color: var(--border2); }
+    .note-actions button:active { transform: translateY(1px); }
+    .btn-delete { color: #f1b3b3; }
 
     .empty-state {
-      color: #666;
+      color: var(--faint);
       text-align: center;
-      padding: 24px 0;
+      padding: 28px 0;
     }
 
     /* --- Form panel --- */
     #form-panel {
-      border-top: 1px solid #333;
-      background: #222;
+      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
       flex-shrink: 0;
+      backdrop-filter: blur(10px);
     }
 
     #form-toggle-bar {
-      padding: 8px 14px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     #btn-new-note {
-      background: #0e639c;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      padding: 5px 12px;
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 12px;
+      padding: 7px 12px;
       font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
+      transition: background .12s ease, border-color .12s ease, transform .04s ease;
     }
-    #btn-new-note:hover { background: #1177bb; }
+    #btn-new-note:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.26); }
+    #btn-new-note:active { transform: translateY(1px); }
 
     #note-form {
-      padding: 0 14px 12px;
+      padding: 0 14px 14px;
     }
 
     .field { margin-bottom: 10px; }
-    .field label { display: block; color: #b0b0b0; margin-bottom: 3px; }
+    .field label { display: block; color: var(--muted); margin-bottom: 6px; font-size: 12px; }
 
     textarea, input[type="datetime-local"], input[type="time"], select {
       width: 100%;
-      padding: 7px 9px;
-      background: #2d2d2d;
-      border: 1px solid #3c3c3c;
-      border-radius: 5px;
-      color: #fff;
+      padding: 9px 10px;
+      background: rgba(16,16,18,0.90);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
       font-size: 13px;
       font-family: inherit;
+      outline: none;
+      transition: background .12s ease, border-color .12s ease;
     }
     textarea { resize: vertical; min-height: 60px; }
-    textarea:focus, input:focus, select:focus { outline: none; border-color: #5a9fd4; }
+    textarea:hover, input:hover, select:hover { border-color: var(--border2); }
+    textarea:focus, input:focus, select:focus { border-color: var(--focus); background: rgba(18,18,20,0.95); }
+
+    /* Date/time pickers: use a slightly lighter field so the native icon is visible */
+    input[type="datetime-local"],
+    input[type="time"] {
+      background: rgba(42,42,46,0.92);
+    }
+    input[type="datetime-local"]:focus,
+    input[type="time"]:focus {
+      background: rgba(48,48,54,0.94);
+    }
+
+    /* Try not to fight the native icon color; keep it mostly default */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: none;
+      opacity: 0.85;
+      cursor: pointer;
+    }
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+    input[type="time"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+
+    /* Ensure internal date/time UI stays dark-themed where supported */
+    input[type="datetime-local"],
+    input[type="time"] { color-scheme: dark; }
 
     #day-checkboxes {
       display: flex;
@@ -145,7 +219,7 @@
       display: flex;
       align-items: center;
       gap: 3px;
-      color: #ccc;
+      color: var(--muted);
       font-size: 12px;
       cursor: pointer;
     }
@@ -158,12 +232,21 @@
       margin-top: 10px;
     }
 
-    .btn-secondary { background: #3c3c3c; color: #e8e8e8; border: none; border-radius: 5px; padding: 7px 14px; cursor: pointer; }
-    .btn-primary   { background: #0e639c; color: #fff;    border: none; border-radius: 5px; padding: 7px 14px; cursor: pointer; }
-    .btn-secondary:hover { filter: brightness(1.1); }
-    .btn-primary:hover   { filter: brightness(1.1); }
+    .btn-secondary, .btn-primary {
+      border: 1px solid var(--border);
+      background: rgba(16,16,18,0.85);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .12s ease, border-color .12s ease, transform .04s ease;
+    }
+    .btn-primary { border-color: rgba(255,255,255,0.20); background: rgba(255,255,255,0.10); }
+    .btn-secondary:hover, .btn-primary:hover { background: var(--hover); border-color: var(--border2); }
+    .btn-secondary:active, .btn-primary:active { transform: translateY(1px); }
 
-    .err { color: #f48771; font-size: 12px; min-height: 1.1em; margin-top: 6px; }
+    .err { color: #f1b3b3; font-size: 12px; min-height: 1.1em; margin-top: 8px; }
   </style>
 </head>
 <body>

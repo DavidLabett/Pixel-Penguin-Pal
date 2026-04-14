@@ -159,6 +159,7 @@ export class PomodoroTimer {
   _onWorkEnd() {
     this._stopTicking(true);
     this.cycleCount++;
+    this._ringingType = 'break'; // ringing to announce break time
     this._setPhase('ringing');
 
     this._ringingTimeout = setTimeout(() => {
@@ -172,10 +173,11 @@ export class PomodoroTimer {
   _onBreakEnd() {
     this._stopTicking(true);
     this.remainingMs = this.workDurationMs;
+    this._ringingType = 'work'; // ringing to announce work time
     this._setPhase('ringing');
     this._ringingTimeout = setTimeout(() => {
-      this._setPhase('stopped');
-      this._emit();
+      this._setPhase('working');
+      this._startTicking();
     }, RINGING_DURATION_MS);
   }
 
@@ -196,7 +198,7 @@ export class PomodoroTimer {
     if (this.phase === 'stopped') {
       label = this._formatClock(this.workDurationMs);
     } else if (this.phase === 'ringing') {
-      label = '—';
+      label = this._ringingType === 'break' ? 'Break time!' : 'Time to work!';
     } else {
       label = this._formatClock(this.remainingMs);
     }
@@ -204,6 +206,7 @@ export class PomodoroTimer {
     this.onChange({
       phase: this.phase,
       label,
+      ringingType: this._ringingType ?? null,
       remainingMs: this.remainingMs,
       cycleCount: this.cycleCount,
     });

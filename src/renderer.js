@@ -15,12 +15,109 @@ const noteDismiss  = document.getElementById('note-dismiss');
 const SPRITES_PATH = '../assets/penguin/spritesheets';
 const WINDOW_W     = 128;
 const WINDOW_H_DEFAULT = 150;
-const WINDOW_H_NOTE    = 260;
+const WINDOW_H_NOTE    = 260; // 110px note panel + 150px content
 
 const animator = new SpriteAnimator(canvas, SPRITES_PATH);
+// Shared 2D context — same object SpriteAnimator uses internally
+const ctx = canvas.getContext('2d');
 
 function applyFlipSetting(settings) {
   spriteWrapper.classList.toggle('flipped', settings?.flipHorizontal === true);
+}
+
+// ---------------------------------------------------------------------------
+// Click-through: only capture mouse events over visible/interactive pixels
+// ---------------------------------------------------------------------------
+function isInteractivePoint(clientX, clientY) {
+  const el = document.elementFromPoint(clientX, clientY);
+  if (!el) return false;
+
+  // Dismiss button and note overlay (text is selectable/scrollable)
+  if (el.closest('#note-overlay')) return true;
+
+  // Timer bar (click to start/pause Pomodoro)
+  if (el.closest('#timer-bar')) return true;
+
+  // Canvas: only hit if the pixel drawn there is non-transparent
+  if (el === canvas || el.closest('#sprite-wrapper')) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = Math.floor((clientX - rect.left)  * scaleX);
+    const cy = Math.floor((clientY - rect.top)   * scaleY);
+    if (cx >= 0 && cy >= 0 && cx < canvas.width && cy < canvas.height) {
+      return ctx.getImageData(cx, cy, 1, 1).data[3] > 10;
+    }
+  }
+
+  return false;
+}
+
+window.addEventListener('mousemove', (e) => {
+  window.companion.setIgnoreMouseEvents(!isInteractivePoint(e.clientX, e.clientY));
+});
+
+// Start click-through until the mouse moves over something interactive
+window.companion.setIgnoreMouseEvents(true);
+
+// ---------------------------------------------------------------------------
+// Sound
+// ---------------------------------------------------------------------------
+const ALERT_SOUND_SRC = '../assets/sound/alert.wav';
+
+let soundEnabled = true;
+let currentSoundMode = 'none'; // 'none' | 'pomodoro' | 'note'
+let pomodoroRingsLeft = 0;
+
+const alertAudio = new Audio(ALERT_SOUND_SRC);
+alertAudio.preload = 'auto';
+
+function stopAlertSound() {
+  currentSoundMode = 'none';
+  pomodoroRingsLeft = 0;
+  alertAudio.loop = false;
+  alertAudio.pause();
+  try { alertAudio.currentTime = 0; } catch {}
+  alertAudio.onended = null;
+}
+
+async function safePlay() {
+  // If this fails (missing file, autoplay blocked, etc.) we want it visible in DevTools.
+  try {
+    await alertAudio.play();
+  } catch (err) {
+    console.error('Failed to play alert sound:', ALERT_SOUND_SRC, err);
+    throw err;
+  }
+}
+
+function startPomodoroSound() {
+  if (!soundEnabled) return;
+  currentSoundMode = 'pomodoro';
+  pomodoroRingsLeft = 5;
+  alertAudio.loop = false;
+  alertAudio.onended = async () => {
+    if (currentSoundMode !== 'pomodoro') return;
+    pomodoroRingsLeft -= 1;
+    if (pomodoroRingsLeft <= 0) {
+      stopAlertSound();
+      return;
+    }
+    // restart immediately
+    try { alertAudio.currentTime = 0; } catch {}
+    await safePlay();
+  };
+  // kick off first ring
+  void safePlay();
+}
+
+function startNoteSoundLoop() {
+  if (!soundEnabled) return;
+  currentSoundMode = 'note';
+  pomodoroRingsLeft = 0;
+  alertAudio.onended = null;
+  alertAudio.loop = true;
+  void safePlay();
 }
 
 // ---------------------------------------------------------------------------
@@ -43,7 +140,9 @@ let easterEggActive       = false;
 let animState      = null;
 let typingState    = 'idle';
 let pomodoroPhase  = 'stopped';
+let ringingType    = null;   // 'break' | 'work' — set while phase === 'ringing'
 let isSleeping     = false;
+let lastPomodoroPhaseForSound = 'stopped';
 
 // ---------------------------------------------------------------------------
 // Idle variants
@@ -106,7 +205,8 @@ function applyAnimState(newState) {
 
   switch (newState) {
     case STATE.RINGING:
-      animator.play('Hurt', true);       // loop for 10 s (RINGING_DURATION_MS)
+      // Break-time ringing → Hurt; Work-time ringing → Flap
+      animator.play(ringingType === 'work' ? 'Flap' : 'Hurt', true);
       break;
     case STATE.BREAK:
       animator.play('Spin_Attack', true);
@@ -138,7 +238,7 @@ function updateAnimState() {
 // ---------------------------------------------------------------------------
 // Fast-typing death sequence (7 s → Death 2 s → Jump → resume)
 // ---------------------------------------------------------------------------
-const FAST_TYPING_STREAK_MS = 7_000;
+const FAST_TYPING_STREAK_MS = 5_000;
 const DEATH_HOLD_MS         = 2000;
 
 let deathHoldTimeout    = null;
@@ -228,25 +328,32 @@ let noteAlertQueue = [];
 
 function showNextNote() {
   if (noteAlertQueue.length === 0) {
+    // Hide note first, then shrink the window once the DOM has collapsed
     noteOverlay.classList.remove('active');
-    window.companion.resizeWindow(WINDOW_W, WINDOW_H_DEFAULT);
     noteAlertActive = false;
+    if (currentSoundMode === 'note') stopAlertSound();
     animState = null;
     updateAnimState();
+    setTimeout(() => window.companion.resizeWindow(WINDOW_W, WINDOW_H_DEFAULT), 80);
     return;
   }
 
   const note = noteAlertQueue.shift();
   noteTextEl.textContent = note.text;
-  noteOverlay.classList.add('active');
-  window.companion.resizeWindow(WINDOW_W, WINDOW_H_NOTE);
 
-  noteAlertActive = true;
-  clearIdleVariant();
-  setZzz(false);
-  animator.onCycleComplete = null;
-  animState = null;
-  animator.play('Jump', true);
+  // Grow the window upward first, then reveal the note panel so the
+  // penguin and timer never appear to shift position.
+  window.companion.resizeWindow(WINDOW_W, WINDOW_H_NOTE);
+  setTimeout(() => {
+    noteOverlay.classList.add('active');
+    noteAlertActive = true;
+    clearIdleVariant();
+    setZzz(false);
+    animator.onCycleComplete = null;
+    animState = null;
+    animator.play('Jump', true);
+    startNoteSoundLoop();
+  }, 80);
 }
 
 noteDismiss.addEventListener('click', () => {
@@ -267,7 +374,24 @@ let pomodoro = null;
 function onPomodoroState(state) {
   pomodoroPhase = state.phase;
 
-  if (state.phase === 'ringing' || state.phase === 'break') {
+  // sound transitions
+  if (state.phase !== lastPomodoroPhaseForSound) {
+    if (state.phase === 'ringing') {
+      // stop note-loop if a note was active but pomodoro ringing takes priority
+      if (currentSoundMode !== 'pomodoro') stopAlertSound();
+      startPomodoroSound();
+    } else if (lastPomodoroPhaseForSound === 'ringing') {
+      // stop ringing sound when leaving ringing
+      if (currentSoundMode === 'pomodoro') stopAlertSound();
+    }
+    lastPomodoroPhaseForSound = state.phase;
+  }
+
+  if (state.phase === 'ringing') {
+    ringingType = state.ringingType;   // 'break' or 'work'
+    cancelDeathJumpSequence();
+    animState = null;
+  } else if (state.phase === 'break') {
     cancelDeathJumpSequence();
     animState = null;
   }
@@ -279,6 +403,8 @@ function onPomodoroState(state) {
     state.phase === 'ringing';
 
   timerLabel.textContent = state.label;
+  // Use a smaller font for text messages so they fit the narrow window
+  timerLabel.classList.toggle('label-text', state.phase === 'ringing');
   timerLabel.classList.toggle('visible', state.phase !== 'stopped' && showTimer);
   window.companion.sendPomodoroState({ phase: state.phase, label: state.label });
 
@@ -365,9 +491,12 @@ document.addEventListener('contextmenu', (e) => {
   const settings = await window.companion.getPomodoroSettings();
   pomodoro = new PomodoroTimer(onPomodoroState, settings);
   applyFlipSetting(settings);
+  soundEnabled = settings?.soundEnabled !== false;
   window.companion.onPomodoroSettingsChanged((s) => {
     pomodoro?.applySettings(s);
     applyFlipSetting(s);
+    soundEnabled = s?.soundEnabled !== false;
+    if (!soundEnabled) stopAlertSound();
   });
   applyAnimState(STATE.IDLE);
 })();
